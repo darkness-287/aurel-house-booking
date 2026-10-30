@@ -76,7 +76,9 @@ const pathMap = Object.fromEntries(
 export default function App() {
   const initial = navMap[location.hash.slice(1)] || "home"
   const [page, setPage] = useState<Page>(initial)
-  const [loggedIn, setLoggedIn] = useState(false)
+  const [loggedIn, setLoggedIn] = useState(
+    () => localStorage.getItem("aurel-customer-session") === "active",
+  )
   const [selectedRoom, setSelectedRoom] = useState(rooms[0])
   const [discount, setDiscount] = useState("")
   const [discountApplied, setDiscountApplied] = useState(false)
@@ -93,6 +95,13 @@ export default function App() {
     addEventListener("hashchange", onHash)
     return () => removeEventListener("hashchange", onHash)
   }, [])
+  useEffect(() => {
+    if (loggedIn) {
+      localStorage.setItem("aurel-customer-session", "active")
+    } else {
+      localStorage.removeItem("aurel-customer-session")
+    }
+  }, [loggedIn])
   useEffect(() => {
     if (!toast) return
     const id = setTimeout(() => setToast(null), 3200)
