@@ -80,6 +80,7 @@ export default function App() {
     () => localStorage.getItem("aurel-customer-session") === "active",
   )
   const [selectedRoom, setSelectedRoom] = useState(rooms[0])
+  const [pendingBooking, setPendingBooking] = useState(false)
   const [discount, setDiscount] = useState("")
   const [discountApplied, setDiscountApplied] = useState(false)
   const [toast, setToast] = useState<Toast | null>(null)
@@ -114,6 +115,8 @@ export default function App() {
     setLoggedIn,
     selectedRoom,
     setSelectedRoom,
+    pendingBooking,
+    setPendingBooking,
     setToast,
     setModal,
   }
@@ -172,6 +175,8 @@ type Common = {
   setLoggedIn: (v: boolean) => void
   selectedRoom: Room
   setSelectedRoom: (r: Room) => void
+  pendingBooking: boolean
+  setPendingBooking: (v: boolean) => void
   setToast: (v: Toast | null) => void
   setModal: (v: ReactNode) => void
 }
@@ -195,7 +200,11 @@ function Header({
   go,
   loggedIn,
   setLoggedIn,
-}: Pick<Common, "go" | "loggedIn" | "setLoggedIn">) {
+  setPendingBooking,
+}: Pick<
+  Common,
+  "go" | "loggedIn" | "setLoggedIn" | "setPendingBooking"
+>) {
   const [open, setOpen] = useState(false)
   return (
     <header>
@@ -252,13 +261,19 @@ function Header({
           <>
             <button
               className="rounded-md px-3 py-2 transition-all duration-200 hover:-translate-y-0.5 hover:!bg-[#183153] hover:!text-white hover:shadow-md"
-              onClick={() => go("login")}
+              onClick={() => {
+                setPendingBooking(false)
+                go("login")
+              }}
             >
               Login
             </button>
             <button
               className="outline transition-all duration-200 hover:-translate-y-0.5 hover:!border-[#183153] hover:!bg-[#183153] hover:!text-white hover:shadow-md"
-              onClick={() => go("register")}
+              onClick={() => {
+                setPendingBooking(false)
+                go("register")
+              }}
             >
               Register
             </button>
@@ -523,7 +538,14 @@ function Rooms(c: Common) {
 
 function RoomDetails(c: Common) {
   const r = c.selectedRoom
-  const book = () => (c.loggedIn ? c.go("booking") : c.go("login"))
+  const book = () => {
+    if (c.loggedIn) {
+      c.go("booking")
+      return
+    }
+    c.setPendingBooking(true)
+    c.go("login")
+  }
   return (
     <>
       <Header {...c} />
@@ -631,7 +653,9 @@ function Auth({
           ? "Account created. Welcome to Aurel House."
           : "Welcome back, Alex.",
     })
-    c.go(admin ? "admin" : c.selectedRoom ? "booking" : "home")
+    const destination = admin ? "admin" : c.pendingBooking ? "booking" : "home"
+    c.setPendingBooking(false)
+    c.go(destination)
   }
   return (
     <>
