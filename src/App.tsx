@@ -11,7 +11,13 @@ type Room = {
   capacity: number
   status: string
 }
-type Toast = { text: string tone?: "success" | "error" }
+type Toast = { text: string; tone?: "success" | "error" }
+type SearchCriteria = {
+  checkIn: string
+  checkOut: string
+  guests: number
+  roomType: string
+}
 
 const A = "/assets"
 const rooms: Room[] = [
@@ -73,6 +79,12 @@ const pathMap = Object.fromEntries(
   Object.entries(navMap).map(([k, v]) => [v, k]),
 ) as Record<Page, string>
 
+const addDays = (date: string, days = 1) => {
+  const value = new Date(`${date}T00:00:00`)
+  value.setDate(value.getDate() + days)
+  return value.toISOString().slice(0, 10)
+}
+
 export default function App() {
   const initial = navMap[location.hash.slice(1)] || "home"
   const [page, setPage] = useState<Page>(initial)
@@ -81,6 +93,12 @@ export default function App() {
   )
   const [selectedRoom, setSelectedRoom] = useState(rooms[0])
   const [pendingBooking, setPendingBooking] = useState(false)
+  const [searchCriteria, setSearchCriteria] = useState<SearchCriteria>({
+    checkIn: "2026-11-12",
+    checkOut: "2026-11-15",
+    guests: 2,
+    roomType: "All room types",
+  })
   const [discount, setDiscount] = useState("")
   const [discountApplied, setDiscountApplied] = useState(false)
   const [toast, setToast] = useState<Toast | null>(null)
@@ -117,6 +135,8 @@ export default function App() {
     setSelectedRoom,
     pendingBooking,
     setPendingBooking,
+    searchCriteria,
+    setSearchCriteria,
     setToast,
     setModal,
   }
@@ -177,6 +197,8 @@ type Common = {
   setSelectedRoom: (r: Room) => void
   pendingBooking: boolean
   setPendingBooking: (v: boolean) => void
+  searchCriteria: SearchCriteria
+  setSearchCriteria: (v: SearchCriteria) => void
   setToast: (v: Toast | null) => void
   setModal: (v: ReactNode) => void
 }
@@ -308,25 +330,91 @@ function Footer({ go }: Pick<Common, "go">) {
   )
 }
 
-function SearchBar({ go }: Pick<Common, "go">) {
+function StayDateFields({
+  searchCriteria,
+  setSearchCriteria,
+}: Pick<Common, "searchCriteria" | "setSearchCriteria">) {
+  const updateCheckIn = (checkIn: string) => {
+    const earliestCheckOut = addDays(checkIn)
+    setSearchCriteria({
+      ...searchCriteria,
+      checkIn,
+      checkOut:
+        searchCriteria.checkOut < earliestCheckOut
+          ? earliestCheckOut
+          : searchCriteria.checkOut,
+    })
+  }
   return (
-    <div className="search-bar">
+    <>
       <Field label="Check-in">
-        <input type="date" defaultValue="2026-11-12" />
+        <input
+          type="date"
+          value={searchCriteria.checkIn}
+          onChange={(e) => updateCheckIn(e.target.value)}
+        />
       </Field>
       <Field label="Check-out">
-        <input type="date" defaultValue="2026-11-15" />
+        <input
+          type="date"
+          min={addDays(searchCriteria.checkIn)}
+          value={searchCriteria.checkOut}
+          onChange={(e) => {
+            const earliestCheckOut = addDays(searchCriteria.checkIn)
+            setSearchCriteria({
+              ...searchCriteria,
+              checkOut:
+                e.target.value < earliestCheckOut
+                  ? earliestCheckOut
+                  : e.target.value,
+            })
+          }}
+        />
       </Field>
+    </>
+  )
+}
+
+function SearchBar({
+  go,
+  searchCriteria,
+  setSearchCriteria,
+}: Pick<Common, "go" | "searchCriteria" | "setSearchCriteria">) {
+  return (
+    <div className="search-bar">
+      <StayDateFields
+        searchCriteria={searchCriteria}
+        setSearchCriteria={setSearchCriteria}
+      />
       <Field label="Guests">
-        <select defaultValue="2">
+        <select
+          value={searchCriteria.guests}
+          onChange={(e) =>
+            setSearchCriteria({
+              ...searchCriteria,
+              guests: Number(e.target.value),
+            })
+          }
+        >
           <option value="2">2 adults</option>
           <option value="1">1 adult</option>
+          <option value="3">3 adults</option>
         </select>
       </Field>
       <Field label="Room type">
-        <select>
+        <select
+          value={searchCriteria.roomType}
+          onChange={(e) =>
+            setSearchCriteria({
+              ...searchCriteria,
+              roomType: e.target.value,
+            })
+          }
+        >
           <option>All room types</option>
           <option>Deluxe King</option>
+          <option>Garden Twin</option>
+          <option>Corner Suite</option>
         </select>
       </Field>
       <button className="primary" onClick={() => go("rooms")}>
@@ -356,7 +444,7 @@ function Home(c: Common) {
         </div>
       </section>
       <main>
-        <SearchBar go={c.go} />
+        <SearchBar {...c} />
         <div className="home-section-heading">
           <Title
             eyebrow="Rest comes easy here."
@@ -452,7 +540,102 @@ function RoomCard({
 }
 
 function Rooms(c: Common) {
-  const [wifi, setWifi] = useState(true)
+  const defaultFilters = {
+    budget: "100-300",
+    roomType: c.searchCriteria.roomType,
+    guests: c.searchCriteria.guests,
+    amenities: ["Free Wi-Fi", "Free cancellation", "Breakfast included"],
+  }
+  const [draft, setDraft] = useState(defaultFilters)
+  const [applied, setApplied] = useState(defaultFilters)
+  const [sort, setSort] = useState("recommended")
+
+  useEffect(() => {
+    setDraft((current) => ({
+      ...current,
+      roomType: c.searchCriteria.roomType,
+      guests: c.searchCriteria.guests,
+    }))
+    setApplied((current) => ({
+      ...current,
+      roomType: c.searchCriteria.roomType,
+      guests: c.searchCriteria.guests,
+    }))
+  }, [c.searchCriteria.roomType, c.searchCriteria.guests])
+
+  const filterRooms = (
+    filters: typeof defaultFilters,
+    sortOrder: string,
+  ) => {
+    const filtered = rooms.filter((room) => {
+      const inBudget =
+        filters.budget === "all" ||
+        (filters.budget === "100-160" && room.price <= 160) ||
+        (filters.budget === "161-200" &&
+          room.price >= 161 &&
+          room.price <= 200) ||
+        (filters.budget === "201-300" && room.price >= 201)
+      const rightType =
+        filters.roomType === "All room types" ||
+        room.name === filters.roomType
+      const enoughSpace = room.capacity >= filters.guests
+      const hasCityView =
+        !filters.amenities.includes("City view") ||
+        room.name === "Corner Suite"
+      const isAccessible =
+        !filters.amenities.includes("Accessible room") ||
+        room.name === "Garden Twin"
+      return (
+        inBudget && rightType && enoughSpace && hasCityView && isAccessible
+      )
+    })
+    return [...filtered].sort((a, b) => {
+      if (sortOrder === "low") return a.price - b.price
+      if (sortOrder === "high") return b.price - a.price
+      return rooms.indexOf(a) - rooms.indexOf(b)
+    })
+  }
+
+  const visibleRooms = useMemo(
+    () => filterRooms(applied, sort),
+    [applied, sort],
+  )
+  const toggleAmenity = (amenity: string, checked: boolean) => {
+    setDraft({
+      ...draft,
+      amenities: checked
+        ? [...draft.amenities, amenity]
+        : draft.amenities.filter((item) => item !== amenity),
+    })
+  }
+  const applyFilters = () => {
+    const next = { ...draft, amenities: [...draft.amenities] }
+    setApplied(next)
+    c.setToast({
+      text: `Filters applied. ${filterRooms(next, sort).length} rooms available.`,
+    })
+  }
+  const resetFilters = () => {
+    const reset = {
+      budget: "100-300",
+      roomType: "All room types",
+      guests: 2,
+      amenities: [
+        "Free Wi-Fi",
+        "Free cancellation",
+        "Breakfast included",
+      ],
+    }
+    setDraft(reset)
+    setApplied(reset)
+    setSort("recommended")
+    c.setSearchCriteria({
+      ...c.searchCriteria,
+      roomType: "All room types",
+      guests: 2,
+    })
+  }
+
   return (
     <>
       <Header {...c} />
@@ -462,23 +645,47 @@ function Rooms(c: Common) {
           title="Your next good night starts here."
           sub="Nov 12–15, 2026 · 2 adults · Prices in USD, taxes included."
         />
-        <SearchBar go={c.go} />
+        <SearchBar {...c} />
         <div className="search-layout">
           <aside className="filter card">
             <h3>Refine your stay</h3>
             <Field label="Nightly budget">
-              <select>
-                <option>$100 – $300</option>
+              <select
+                value={draft.budget}
+                onChange={(e) =>
+                  setDraft({ ...draft, budget: e.target.value })
+                }
+              >
+                <option value="100-300">$100 – $300</option>
+                <option value="100-160">$100 – $160</option>
+                <option value="161-200">$161 – $200</option>
+                <option value="201-300">$201 – $300</option>
+                <option value="all">All prices</option>
               </select>
             </Field>
             <Field label="Room type">
-              <select>
+              <select
+                value={draft.roomType}
+                onChange={(e) =>
+                  setDraft({ ...draft, roomType: e.target.value })
+                }
+              >
                 <option>All room types</option>
+                <option>Deluxe King</option>
+                <option>Garden Twin</option>
+                <option>Corner Suite</option>
               </select>
             </Field>
             <Field label="Guests">
-              <select>
-                <option>2 adults</option>
+              <select
+                value={draft.guests}
+                onChange={(e) =>
+                  setDraft({ ...draft, guests: Number(e.target.value) })
+                }
+              >
+                <option value="1">1 adult</option>
+                <option value="2">2 adults</option>
+                <option value="3">3 adults</option>
               </select>
             </Field>
             <b className="label">Amenities</b>
@@ -492,39 +699,46 @@ function Rooms(c: Common) {
               <label className="check" key={x}>
                 <input
                   type="checkbox"
-                  checked={i === 0 ? wifi : undefined}
-                  onChange={
-                    i === 0 ? (e) => setWifi(e.target.checked) : undefined
-                  }
+                  checked={draft.amenities.includes(x)}
+                  onChange={(e) => toggleAmenity(x, e.target.checked)}
                 />{" "}
                 {x}
               </label>
             ))}
-            <button
-              className="primary"
-              onClick={() =>
-                c.setToast({ text: "Filters applied. 3 rooms available." })
-              }
-            >
+            <button className="primary" onClick={applyFilters}>
               Apply filters
             </button>
-            <button className="link">Reset all filters</button>
+            <button className="link" onClick={resetFilters}>
+              Reset all filters
+            </button>
           </aside>
           <section className="results">
             <div className="row">
               <div>
-                <h2>3 rooms, just right for you</h2>
-                <p>All available for your selected dates.</p>
+                <h2>
+                  {visibleRooms.length}{" "}
+                  {visibleRooms.length === 1 ? "room" : "rooms"}, just right
+                  for you
+                </h2>
+                <p>
+                  {visibleRooms.length
+                    ? "All available for your selected dates."
+                    : "Try changing or resetting your filters."}
+                </p>
               </div>
               <Field label="Sort by">
-                <select>
-                  <option>Recommended</option>
-                  <option>Price: low to high</option>
+                <select
+                  value={sort}
+                  onChange={(e) => setSort(e.target.value)}
+                >
+                  <option value="recommended">Recommended</option>
+                  <option value="low">Price: low to high</option>
+                  <option value="high">Price: high to low</option>
                 </select>
               </Field>
             </div>
             <div className="room-grid results-grid">
-              {rooms.map((r) => (
+              {visibleRooms.map((r) => (
                 <RoomCard key={r.name} room={r} {...c} />
               ))}
             </div>
@@ -606,12 +820,10 @@ function RoomDetails(c: Common) {
               <strong className="price">${r.price}</strong>
             </div>
             <Badge>Available</Badge>
-            <Field label="Check-in">
-              <input type="date" defaultValue="2026-11-12" />
-            </Field>
-            <Field label="Check-out">
-              <input type="date" defaultValue="2026-11-15" />
-            </Field>
+            <StayDateFields
+              searchCriteria={c.searchCriteria}
+              setSearchCriteria={c.setSearchCriteria}
+            />
             <Field label="Guests">
               <select>
                 <option>2 adults</option>
@@ -787,12 +999,10 @@ function Booking(
             <section className="card">
               <h2>Stay details</h2>
               <div className="field-grid">
-                <Field label="Check-in">
-                  <input type="date" defaultValue="2026-11-12" />
-                </Field>
-                <Field label="Check-out">
-                  <input type="date" defaultValue="2026-11-15" />
-                </Field>
+                <StayDateFields
+                  searchCriteria={c.searchCriteria}
+                  setSearchCriteria={c.setSearchCriteria}
+                />
                 <Field label="Guests">
                   <select>
                     <option>2 adults</option>
