@@ -200,25 +200,25 @@ function Header({
       </button>
       <nav className={open ? "open" : ""}>
         <button
-          className="rounded-md px-2 py-2 transition-colors duration-200 hover:bg-[#f7f0e2] hover:text-[#8b651d]"
+          className="rounded-md px-3 py-2 transition-all duration-200 hover:-translate-y-0.5 hover:!bg-[#183153] hover:!text-white hover:shadow-md"
           onClick={() => go("home")}
         >
           Home
         </button>
         <button
-          className="rounded-md px-2 py-2 transition-colors duration-200 hover:bg-[#f7f0e2] hover:text-[#8b651d]"
+          className="rounded-md px-3 py-2 transition-all duration-200 hover:-translate-y-0.5 hover:!bg-[#183153] hover:!text-white hover:shadow-md"
           onClick={() => go("rooms")}
         >
           Rooms
         </button>
         <button
-          className="rounded-md px-2 py-2 transition-colors duration-200 hover:bg-[#f7f0e2] hover:text-[#8b651d]"
+          className="rounded-md px-3 py-2 transition-all duration-200 hover:-translate-y-0.5 hover:!bg-[#183153] hover:!text-white hover:shadow-md"
           onClick={() => go("about")}
         >
           About
         </button>
         <button
-          className="rounded-md px-2 py-2 transition-colors duration-200 hover:bg-[#f7f0e2] hover:text-[#8b651d]"
+          className="rounded-md px-3 py-2 transition-all duration-200 hover:-translate-y-0.5 hover:!bg-[#183153] hover:!text-white hover:shadow-md"
           onClick={() => go("contact")}
         >
           Contact
@@ -242,13 +242,13 @@ function Header({
         ) : (
           <>
             <button
-              className="rounded-md px-2 py-2 transition-colors duration-200 hover:bg-[#f7f0e2] hover:text-[#8b651d]"
+              className="rounded-md px-3 py-2 transition-all duration-200 hover:-translate-y-0.5 hover:!bg-[#183153] hover:!text-white hover:shadow-md"
               onClick={() => go("login")}
             >
               Login
             </button>
             <button
-              className="outline transition-colors duration-200 hover:border-[#c8a96b] hover:bg-[#f7f0e2] hover:text-[#8b651d]"
+              className="outline transition-all duration-200 hover:-translate-y-0.5 hover:!border-[#183153] hover:!bg-[#183153] hover:!text-white hover:shadow-md"
               onClick={() => go("register")}
             >
               Register
