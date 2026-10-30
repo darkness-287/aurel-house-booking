@@ -1,1 +1,10 @@
-{}
+{
+  "description": "Helps users upload up to 44 project images before creating a complete, interactive web prototype based on their visual references.",
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}
