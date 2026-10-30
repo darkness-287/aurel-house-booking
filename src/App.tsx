@@ -541,7 +541,7 @@ function RoomCard({
 
 function Rooms(c: Common) {
   const defaultFilters = {
-    budget: "100-300",
+    budget: "all",
     roomType: c.searchCriteria.roomType,
     guests: c.searchCriteria.guests,
     amenities: ["Free Wi-Fi", "Free cancellation", "Breakfast included"],
@@ -620,7 +620,7 @@ function Rooms(c: Common) {
   }
   const resetFilters = () => {
     const reset = {
-      budget: "100-300",
+      budget: "all",
       roomType: "All room types",
       guests: 2,
       amenities: [
@@ -659,11 +659,11 @@ function Rooms(c: Common) {
                   setDraft({ ...draft, budget: e.target.value })
                 }
               >
+                <option value="all">All prices</option>
                 <option value="100-300">$100 – $300</option>
                 <option value="100-160">$100 – $160</option>
                 <option value="161-200">$161 – $200</option>
                 <option value="201-300">$201 – $300</option>
-                <option value="all">All prices</option>
               </select>
             </Field>
             <Field label="Room type">
