@@ -199,10 +199,30 @@ function Header({
         ☰
       </button>
       <nav className={open ? "open" : ""}>
-        <button onClick={() => go("home")}>Home</button>
-        <button onClick={() => go("rooms")}>Rooms</button>
-        <button onClick={() => go("about")}>About</button>
-        <button onClick={() => go("contact")}>Contact</button>
+        <button
+          className="rounded-md px-2 py-2 transition-colors duration-200 hover:bg-[#f7f0e2] hover:text-[#8b651d]"
+          onClick={() => go("home")}
+        >
+          Home
+        </button>
+        <button
+          className="rounded-md px-2 py-2 transition-colors duration-200 hover:bg-[#f7f0e2] hover:text-[#8b651d]"
+          onClick={() => go("rooms")}
+        >
+          Rooms
+        </button>
+        <button
+          className="rounded-md px-2 py-2 transition-colors duration-200 hover:bg-[#f7f0e2] hover:text-[#8b651d]"
+          onClick={() => go("about")}
+        >
+          About
+        </button>
+        <button
+          className="rounded-md px-2 py-2 transition-colors duration-200 hover:bg-[#f7f0e2] hover:text-[#8b651d]"
+          onClick={() => go("contact")}
+        >
+          Contact
+        </button>
         {loggedIn ? (
           <>
             <button onClick={() => go("bookings")}>My Bookings</button>
@@ -221,8 +241,16 @@ function Header({
           </>
         ) : (
           <>
-            <button onClick={() => go("login")}>Login</button>
-            <button className="outline" onClick={() => go("register")}>
+            <button
+              className="rounded-md px-2 py-2 transition-colors duration-200 hover:bg-[#f7f0e2] hover:text-[#8b651d]"
+              onClick={() => go("login")}
+            >
+              Login
+            </button>
+            <button
+              className="outline transition-colors duration-200 hover:border-[#c8a96b] hover:bg-[#f7f0e2] hover:text-[#8b651d]"
+              onClick={() => go("register")}
+            >
               Register
             </button>
           </>
