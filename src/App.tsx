@@ -570,6 +570,9 @@ function Rooms(c: Common) {
     const filtered = rooms.filter((room) => {
       const inBudget =
         filters.budget === "all" ||
+        (filters.budget === "100-300" &&
+          room.price >= 100 &&
+          room.price <= 300) ||
         (filters.budget === "100-160" && room.price <= 160) ||
         (filters.budget === "161-200" &&
           room.price >= 161 &&
