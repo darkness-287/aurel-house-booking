@@ -329,18 +329,20 @@ function Home(c: Common) {
             Thoughtful rooms, genuine hospitality, and a slower kind of city
             stay. Welcome to Aurel House.
           </p>
-          <button className="gold" onClick={() => c.go("rooms")}>
-            Explore our rooms →
-          </button>
         </div>
       </section>
       <main>
         <SearchBar go={c.go} />
-        <Title
-          eyebrow="Rest comes easy here."
-          title="A good day begins with a great stay."
-          sub="Designed for restful nights, unhurried mornings, and everything in between."
-        />
+        <div className="home-section-heading">
+          <Title
+            eyebrow="Rest comes easy here."
+            title="A good day begins with a great stay."
+            sub="Designed for restful nights, unhurried mornings, and everything in between."
+          />
+          <button className="primary" onClick={() => c.go("rooms")}>
+            View all rooms →
+          </button>
+        </div>
         <div className="room-grid">
           {rooms.map((r) => (
             <RoomCard key={r.name} room={r} {...c} />

@@ -55,6 +55,8 @@ main { max-width: 1376px; margin: auto; padding: 46px 48px 70px; }
 .title { margin-bottom: 30px; }
 .title h1 { margin: 9px 0 6px; }
 .title p { font-size: 15px; margin: 0; }
+.home-section-heading { display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+.home-section-heading .primary { flex: none; }
 .search-bar { background: white; border: 1px solid #e1e6eb; border-radius: 12px; box-shadow: 0 6px 24px rgba(24,49,83,.04); padding: 16px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 34px; }
 .search-bar .primary { grid-column: 1 / 2; }
 .field { display: flex; flex-direction: column; min-width: 0; border: 1px solid #e1e6eb; border-radius: 8px; padding: 11px 14px; background: white; }
@@ -186,6 +188,8 @@ th, td { padding: 18px; border-bottom: 1px solid #e1e6eb; white-space: nowrap; }
   .search-bar { grid-template-columns: 1fr; padding: 14px; }
   .search-bar .primary { grid-column: auto; }
   .room-grid, .results-grid, .review-grid, .split, .auth, .detail-layout, .checkout-layout, .review-layout, .contact-layout, .profile-layout, .chart-grid { grid-template-columns: 1fr; }
+  .home-section-heading { align-items: flex-start; flex-direction: column; gap: 0; margin-bottom: 28px; }
+  .home-section-heading .title { margin-bottom: 18px; }
   .search-layout { grid-template-columns: 1fr; }
   .results-grid .room-card:last-child { grid-column: auto; }
   .gallery { height: auto; grid-template-columns: 1fr 1fr; grid-template-rows: 280px 120px; }
